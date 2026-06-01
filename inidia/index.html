@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Nihongo Memory</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --green:#22c55e;
+    --green-dark:#16a34a;
+    --green-light:#bbf7d0;
+
+    --blue:#3b82f6;
+    --blue-light:#dbeafe;
+
+    --white:#ffffff;
+    --bg:#f0fdf4;
+
+    --text:#1e293b;
+    --muted:#64748b;
+
+    --border:#e2e8f0;
+
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+    --shadow-lg:0 18px 40px rgba(0,0,0,.12);
+
+    --radius:22px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Nunito',sans-serif;
+    background:var(--bg);
+    min-height:100vh;
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+/* BACKGROUND */
+
+.bg-circle{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(30px);
+    z-index:-1;
+}
+
+.bg-1{
+    width:300px;
+    height:300px;
+    background:rgba(34,197,94,.15);
+    top:-120px;
+    right:-100px;
+}
+
+.bg-2{
+    width:250px;
+    height:250px;
+    background:rgba(59,130,246,.12);
+    bottom:-120px;
+    left:-80px;
+}
+
+/* CONTAINER */
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:24px 16px 40px;
+}
+
+/* HEADER */
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:20px;
+
+    animation:slideDown .6s ease;
+}
+
+.logo{
+    width:60px;
+    height:60px;
+
+    border-radius:18px;
+
+    background:linear-gradient(
+        135deg,
+        var(--green),
+        var(--green-dark)
+    );
+
+    color:white;
+    font-size:1.8rem;
+    font-weight:900;
+    font-family:'Noto Sans JP',sans-serif;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    box-shadow:0 10px 25px rgba(34,197,94,.35);
+}
+
+.logo-main{
+    font-size:1.4rem;
+    font-weight:900;
+}
+
+.logo-sub{
+    color:var(--green);
+    font-size:.75rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+/* PROGRESS CARD */
+
+.progress-card{
+    background:white;
+    border-radius:var(--radius);
+    padding:24px;
+    box-shadow:var(--shadow);
+    margin-bottom:22px;
+    position:relative;
+    overflow:hidden;
+
+    animation:fadeUp .8s ease;
+}
+
+.progress-card::before{
+    content:"日本語";
+    position:absolute;
+    right:18px;
+    top:12px;
+    font-size:3rem;
+    color:rgba(34,197,94,.08);
+    font-family:'Noto Sans JP',sans-serif;
+    font-weight:900;
+}
+
+.progress-card h2{
+    margin-bottom:6px;
+}
+
+.welcome{
+    color:var(--muted);
+    line-height:1.6;
+    margin-bottom:18px;
+}
+
+.progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.progress-percent{
+    font-size:2rem;
+    font-weight:900;
+    color:var(--green);
+}
+
+.progress-bar{
+    width:100%;
+    height:12px;
+    border-radius:999px;
+    background:var(--green-light);
+    overflow:hidden;
+}
+
+.progress-fill{
+    width:35%;
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(
+        90deg,
+        var(--green),
+        var(--green-dark)
+    );
+}
+
+.stats{
+    margin-top:20px;
+
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.stat{
+    text-align:center;
+}
+
+.stat-value{
+    font-size:1.4rem;
+    font-weight:900;
+}
+
+.stat-label{
+    font-size:.75rem;
+    color:var(--muted);
+}
+
+/* MENU */
+
+.menu-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:16px;
+}
+
+.menu-card{
+    text-decoration:none;
+    color:inherit;
+
+    background:white;
+    border-radius:var(--radius);
+
+    padding:24px 18px;
+
+    box-shadow:var(--shadow);
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    position:relative;
+    overflow:hidden;
+}
+
+.menu-card::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:100%;
+    height:4px;
+
+    background:linear-gradient(
+        90deg,
+        var(--green),
+        var(--blue)
+    );
+
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:.25s;
+}
+
+.menu-card:hover{
+    transform:translateY(-8px);
+    box-shadow:var(--shadow-lg);
+}
+
+.menu-card:hover::after{
+    transform:scaleX(1);
+}
+
+.menu-icon{
+    width:72px;
+    height:72px;
+
+    border-radius:18px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:2rem;
+
+    margin-bottom:14px;
+
+    transition:.25s;
+}
+
+.menu-card:hover .menu-icon{
+    transform:scale(1.08) rotate(4deg);
+}
+
+.learn .menu-icon{
+    background:#dcfce7;
+}
+
+.flashcard .menu-icon{
+    background:#dbeafe;
+}
+
+.quiz .menu-icon{
+    background:#fef3c7;
+}
+
+.game .menu-icon{
+    background:#ede9fe;
+}
+
+.menu-title{
+    font-size:1rem;
+    font-weight:800;
+    margin-bottom:4px;
+}
+
+.menu-desc{
+    font-size:.85rem;
+    color:var(--muted);
+}
+
+/* FOOTER */
+
+.footer{
+    margin-top:30px;
+    text-align:center;
+    color:var(--muted);
+    font-size:.85rem;
+}
+
+/* ANIMATION */
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes slideDown{
+    from{
+        opacity:0;
+        transform:translateY(-20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    .menu-grid{
+        grid-template-columns:1fr;
+    }
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="bg-circle bg-1"></div>
+<div class="bg-circle bg-2"></div>
+
+<div class="container">
+
+```
+<header class="header">
+
+    <div class="logo">
+        日
+    </div>
+
+    <div>
+        <div class="logo-main">
+            Nihongo Memory
+        </div>
+
+        <div class="logo-sub">
+            Learn Japanese
+        </div>
+    </div>
+
+</header>
+
+<section class="progress-card">
+
+    <h2>Selamat Datang 👋</h2>
+
+    <p class="welcome">
+        Belajar kosakata Jepang dengan flashcard,
+        quiz, dan mini game interaktif.
+    </p>
+
+    <div class="progress-top">
+
+        <span>Penguasaan Kosakata</span>
+
+        <span class="progress-percent">
+            35%
+        </span>
+
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-value">None</div>
+            <div class="stat-label">Dipelajari</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-value">Undefined</div>
+            <div class="stat-label">Benar</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-value">None</div>
+            <div class="stat-label">Salah</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-value">100</div>
+            <div class="stat-label">Total</div>
+        </div>
+
+    </div>
+
+</section>
+
+<section class="menu-grid">
+
+    <a href="belajar.html" class="menu-card learn">
+
+        <div class="menu-icon">📚</div>
+
+        <div class="menu-title">
+            Belajar
+        </div>
+
+        <div class="menu-desc">
+            Pelajari kosakata baru
+        </div>
+
+    </a>
+
+    <a href="flashcard.html" class="menu-card flashcard">
+
+        <div class="menu-icon">🃏</div>
+
+        <div class="menu-title">
+            Flashcard
+        </div>
+
+        <div class="menu-desc">
+            Latihan mengingat cepat
+        </div>
+
+    </a>
+
+    <a href="quiz.html" class="menu-card quiz">
+
+        <div class="menu-icon">❓</div>
+
+        <div class="menu-title">
+            Quiz
+        </div>
+
+        <div class="menu-desc">
+            Uji kemampuanmu
+        </div>
+
+    </a>
+
+    <a href="game.html" class="menu-card game">
+
+        <div class="menu-icon">🎮</div>
+
+        <div class="menu-title">
+            Mini Game
+        </div>
+
+        <div class="menu-desc">
+            Belajar sambil bermain
+        </div>
+
+    </a>
+
+</section>
+
+<div class="footer">
+    Nihongo Memory © 2026
+</div>
+```
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,841 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nihongo Memory - Flashcard</title>
+
+<style>
+/* ==========================================
+   NIHONGO MEMORY — FLASHCARD GAME
+   ========================================== */
+
+:root{
+    --green:#22c55e;
+    --green-dark:#16a34a;
+    --green-light:#bbf7d0;
+    --blue:#3b82f6;
+    --bg:#f0fdf4;
+    --white:#ffffff;
+    --text:#1e293b;
+    --gray:#64748b;
+    --danger:#ef4444;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg,#f0fdf4,#dbeafe);
+    min-height:100vh;
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+header{
+    width:100%;
+    padding:25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:800;
+    color:var(--green-dark);
+}
+
+.logo span{
+    color:var(--blue);
+}
+
+.score-box{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.score-item{
+    background:white;
+    padding:12px 18px;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+    font-weight:600;
+    color:var(--gray);
+}
+
+.score-item b{
+    color:var(--green-dark);
+}
+
+/* ==========================================
+   CONTAINER
+   ========================================== */
+
+.container{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
+
+/* ==========================================
+   FLASHCARD
+   ========================================== */
+
+.flashcard-wrapper{
+    perspective:1000px;
+    margin-top:20px;
+}
+
+.flashcard{
+    width:100%;
+    min-height:400px;
+    background:white;
+    border-radius:30px;
+    padding:40px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,0.1);
+
+    animation:slideIn .4s ease;
+}
+
+@keyframes slideIn{
+    from{
+        transform:translateX(70px);
+        opacity:0;
+    }
+    to{
+        transform:translateX(0);
+        opacity:1;
+    }
+}
+
+.category{
+    display:inline-block;
+    background:var(--green-light);
+    color:var(--green-dark);
+    padding:10px 18px;
+    border-radius:999px;
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.hiragana{
+    font-size:90px;
+    font-weight:800;
+    text-align:center;
+    margin-top:15px;
+    color:var(--text);
+}
+
+.romaji{
+    text-align:center;
+    margin-top:15px;
+    font-size:24px;
+    color:var(--gray);
+}
+
+.question{
+    text-align:center;
+    margin-top:40px;
+    font-size:22px;
+    font-weight:700;
+}
+
+/* ==========================================
+   OPTIONS
+   ========================================== */
+
+.options{
+    margin-top:40px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.option-btn{
+    border:none;
+    background:#f8fafc;
+    padding:20px;
+    border-radius:20px;
+    font-size:18px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.25s;
+    border:3px solid transparent;
+}
+
+.option-btn:hover{
+    transform:translateY(-3px);
+    background:#ecfeff;
+}
+
+.option-btn.correct{
+    background:#dcfce7;
+    border-color:var(--green);
+    color:var(--green-dark);
+}
+
+.option-btn.wrong{
+    background:#fee2e2;
+    border-color:var(--danger);
+    color:#991b1b;
+}
+
+/* ==========================================
+   RESULT
+   ========================================== */
+
+.result-box{
+    margin-top:30px;
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+    display:none;
+    animation:fade .3s ease;
+}
+
+@keyframes fade{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.result-box.show{
+    display:block;
+}
+
+.result-box.correct{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.result-box.wrong{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.next-btn{
+    margin-top:25px;
+    border:none;
+    background:var(--green);
+    color:white;
+    padding:15px 30px;
+    border-radius:15px;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.25s;
+}
+
+.next-btn:hover{
+    background:var(--green-dark);
+    transform:translateY(-2px);
+}
+
+/* ==========================================
+   PROGRESS
+   ========================================== */
+
+.progress-container{
+    margin-top:35px;
+}
+
+.progress-title{
+    margin-bottom:12px;
+    font-weight:700;
+    color:var(--gray);
+}
+
+.progress-bar{
+    width:100%;
+    height:18px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,var(--green),var(--blue));
+    border-radius:999px;
+    transition:0.4s;
+}
+
+/* ==========================================
+   FINISH SCREEN
+   ========================================== */
+
+.finish-screen{
+    display:none;
+    background:white;
+    padding:60px 30px;
+    border-radius:30px;
+    text-align:center;
+    margin-top:40px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.1);
+    animation:fade .4s ease;
+}
+
+.finish-screen.show{
+    display:block;
+}
+
+.finish-screen h1{
+    font-size:50px;
+    margin-bottom:15px;
+}
+
+.finish-screen p{
+    font-size:22px;
+    color:var(--gray);
+    margin-bottom:25px;
+}
+
+.final-score{
+    font-size:60px;
+    font-weight:900;
+    color:var(--green-dark);
+}
+
+.restart-btn{
+    margin-top:30px;
+    border:none;
+    background:var(--blue);
+    color:white;
+    padding:16px 35px;
+    border-radius:18px;
+    font-size:18px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.25s;
+}
+
+.restart-btn:hover{
+    transform:translateY(-3px);
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+footer{
+    text-align:center;
+    margin-top:50px;
+    padding:30px;
+    color:var(--gray);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media(max-width:768px){
+
+    .hiragana{
+        font-size:60px;
+    }
+
+    .options{
+        grid-template-columns:1fr;
+    }
+
+    .flashcard{
+        padding:25px;
+    }
+
+    .question{
+        font-size:20px;
+    }
+    .back-btn{
+    text-decoration:none;
+    background:white;
+    color:var(--green-dark);
+    padding:12px 22px;
+    border-radius:14px;
+    font-weight:700;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+    transition:0.25s;
+    display:inline-block;
+}
+
+.back-btn:hover{
+    background:var(--green);
+    color:white;
+    transform:translateY(-3px);
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html" class="back-btn">
+    ⬅ Kembali
+</a>
+    <div class="logo">
+        NIHONGO <span>FLASHCARD</span>
+    </div>
+
+    <div class="score-box">
+        <div class="score-item">
+            Score: <b id="score">0</b>
+        </div>
+
+        <div class="score-item">
+            Round: <b id="round">1</b>/20
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- GAME -->
+    <div id="gameArea">
+
+        <div class="flashcard-wrapper">
+
+            <div class="flashcard" id="flashcard">
+
+                <div class="category" id="category">
+                    Kategori
+                </div>
+
+                <div class="hiragana" id="hiragana">
+                    あかい
+                </div>
+
+                <div class="romaji" id="romaji">
+                    akai
+                </div>
+
+                <div class="question">
+                    Ini artinya apa?
+                </div>
+
+                <div class="options" id="options">
+                </div>
+
+                <div class="result-box" id="resultBox">
+                    Result
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-title">
+                Progress Belajar
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FINISH -->
+    <div class="finish-screen" id="finishScreen">
+
+        <h1>🎉</h1>
+
+        <p>Game Selesai!</p>
+
+        <div class="final-score" id="finalScore">
+            0/20
+        </div>
+
+        <button class="restart-btn" onclick="restartGame()">
+            Main Lagi
+        </button>
+
+    </div>
+
+</div>
+
+<footer>
+    Nihongo Memory — Flashcard Training
+</footer>
+
+<script>
+
+/* ==========================================
+   VOCABULARY DATA
+   ========================================== */
+
+const vocabulary = {
+
+"Warna / Sifat":[
+    ["あかい","akai","merah"],
+    ["あおい","aoi","biru"]
+],
+
+"Tempat / Alam":[
+    ["さか","saka","tanjakan"],
+    ["せかい","sekai","dunia"],
+    ["くに","kuni","negara"],
+    ["やま","yama","gunung"],
+    ["かわ","kawa","sungai"],
+    ["うみ","umi","laut"],
+    ["ゆき","yuki","salju"],
+    ["あめ","ame","hujan"],
+    ["くも","kumo","awan"]
+],
+
+"Hewan":[
+    ["うま","uma","kuda"],
+    ["ねこ","neko","kucing"],
+    ["いぬ","inu","anjing"],
+    ["さかな","sakana","ikan"],
+    ["かに","kani","kepiting"],
+    ["さる","saru","monyet"],
+    ["むし","mushi","serangga"]
+],
+
+"Bagian Tubuh":[
+    ["みみ","mimi","telinga"],
+    ["め","me","mata"],
+    ["はな","hana","hidung / bunga"],
+    ["くち","kuchi","mulut"],
+    ["て","te","tangan"],
+    ["あし","ashi","kaki"],
+    ["つの","tsuno","tanduk"],
+    ["ほね","hone","tulang"]
+],
+
+"Benda Sehari-hari":[
+    ["いす","isu","kursi"],
+    ["え","e","gambar"],
+    ["しお","shio","garam"],
+    ["かい","kai","kerang"],
+    ["はかり","hakari","timbangan"],
+    ["せんす","sensu","kipas"],
+    ["かばん","kaban","tas"],
+    ["ふえ","fue","suling"],
+    ["いと","ito","benang"],
+    ["はし","hashi","jembatan"],
+    ["しろ","shiro","kastil"],
+    ["へい","hei","tembok"],
+    ["ほし","hoshi","bintang"]
+],
+
+"Makanan / Dapur":[
+    ["さけ","sake","salmon / sake"],
+    ["すいか","suika","semangka"]
+],
+
+"Waktu / Musim":[
+    ["あき","aki","musim gugur"],
+    ["なつ","natsu","musim panas"],
+    ["きせつ","kisetsu","musim"],
+    ["おととい","ototoi","kemarin lusa"],
+    ["あした","ashita","besok"],
+    ["らいねん","rainen","tahun depan"]
+],
+
+"Sekolah / Tulisan":[
+    ["しかく","shikaku","kotak / persegi"],
+    ["きそく","kisoku","peraturan"],
+    ["うそ","uso","bohong"],
+    ["へんか","henka","perubahan"]
+],
+
+"Perasaan / Pikiran":[
+    ["ゆめ","yume","mimpi"],
+    ["こころ","kokoro","hati / perasaan"]
+],
+
+"Alam & Tumbuhan":[
+    ["はな","hana","bunga"],
+    ["にわ","niwa","taman"],
+    ["さくら","sakura","bunga sakura"]
+],
+
+"Kata Kerja / Aktivitas":[
+    ["あう","au","bertemu"],
+    ["かいもの","kaimono","belanja"]
+],
+
+"Tempat / Posisi":[
+    ["そこ","soko","di situ"],
+    ["ここ","koko","di sini"],
+    ["えき","eki","stasiun"]
+]
+
+};
+
+/* ==========================================
+   FLATTEN VOCABULARY
+   ========================================== */
+
+const allWords = [];
+
+for(let category in vocabulary){
+
+    vocabulary[category].forEach(word=>{
+
+        allWords.push({
+            category: category,
+            hiragana: word[0],
+            romaji: word[1],
+            meaning: word[2]
+        });
+
+    });
+
+}
+
+/* ==========================================
+   GAME VARIABLES
+   ========================================== */
+
+let currentQuestion = 0;
+let score = 0;
+let currentWord = null;
+
+const TOTAL_ROUND = 20;
+
+/* ==========================================
+   ELEMENTS
+   ========================================== */
+
+const categoryEl = document.getElementById("category");
+const hiraganaEl = document.getElementById("hiragana");
+const romajiEl = document.getElementById("romaji");
+const optionsEl = document.getElementById("options");
+const resultBox = document.getElementById("resultBox");
+
+const scoreEl = document.getElementById("score");
+const roundEl = document.getElementById("round");
+const progressFill = document.getElementById("progressFill");
+
+const finishScreen = document.getElementById("finishScreen");
+const gameArea = document.getElementById("gameArea");
+const finalScore = document.getElementById("finalScore");
+
+/* ==========================================
+   RANDOM UTIL
+   ========================================== */
+
+function shuffle(array){
+
+    for(let i=array.length-1;i>0;i--){
+
+        const j = Math.floor(Math.random() * (i+1));
+
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+
+    return array;
+}
+
+/* ==========================================
+   LOAD QUESTION
+   ========================================== */
+
+function loadQuestion(){
+
+    resultBox.className = "result-box";
+    resultBox.innerHTML = "";
+
+    roundEl.innerText = currentQuestion + 1;
+
+    const progress = (currentQuestion / TOTAL_ROUND) * 100;
+    progressFill.style.width = progress + "%";
+
+    currentWord = allWords[
+        Math.floor(Math.random() * allWords.length)
+    ];
+
+    categoryEl.innerText = currentWord.category;
+    hiraganaEl.innerText = currentWord.hiragana;
+    romajiEl.innerText = currentWord.romaji;
+
+    let options = [currentWord.meaning];
+
+    while(options.length < 4){
+
+        const randomMeaning =
+        allWords[Math.floor(Math.random() * allWords.length)].meaning;
+
+        if(!options.includes(randomMeaning)){
+            options.push(randomMeaning);
+        }
+    }
+
+    shuffle(options);
+
+    optionsEl.innerHTML = "";
+
+    options.forEach(option=>{
+
+        const button = document.createElement("button");
+
+        button.classList.add("option-btn");
+
+        button.innerText = option;
+
+        button.onclick = ()=> checkAnswer(button,option);
+
+        optionsEl.appendChild(button);
+
+    });
+
+}
+
+/* ==========================================
+   CHECK ANSWER
+   ========================================== */
+
+function checkAnswer(button,selected){
+
+    const allButtons =
+    document.querySelectorAll(".option-btn");
+
+    allButtons.forEach(btn=>{
+        btn.disabled = true;
+    });
+
+    if(selected === currentWord.meaning){
+
+        score++;
+
+        scoreEl.innerText = score;
+
+        button.classList.add("correct");
+
+        resultBox.classList.add("show","correct");
+
+        resultBox.innerHTML = `
+            ✅ Benar!<br><br>
+            <b>${currentWord.hiragana}</b>
+            (${currentWord.romaji})
+            artinya
+            <b>${currentWord.meaning}</b>
+            <br><br>
+            <button class="next-btn" onclick="nextQuestion()">
+                Lanjut
+            </button>
+        `;
+
+    }else{
+
+        button.classList.add("wrong");
+
+        allButtons.forEach(btn=>{
+
+            if(btn.innerText === currentWord.meaning){
+                btn.classList.add("correct");
+            }
+
+        });
+
+        resultBox.classList.add("show","wrong");
+
+        resultBox.innerHTML = `
+            ❌ Salah!<br><br>
+            Jawaban benar:
+            <b>${currentWord.meaning}</b>
+            <br><br>
+            <button class="next-btn" onclick="nextQuestion()">
+                Lanjut
+            </button>
+        `;
+
+    }
+
+}
+
+/* ==========================================
+   NEXT QUESTION
+   ========================================== */
+
+function nextQuestion(){
+
+    currentQuestion++;
+
+    if(currentQuestion >= TOTAL_ROUND){
+
+        finishGame();
+        return;
+    }
+
+    const card = document.getElementById("flashcard");
+
+    card.style.animation = "none";
+
+    void card.offsetWidth;
+
+    card.style.animation = "slideIn .4s ease";
+
+    loadQuestion();
+
+}
+
+/* ==========================================
+   FINISH GAME
+   ========================================== */
+
+function finishGame(){
+
+    gameArea.style.display = "none";
+
+    finishScreen.classList.add("show");
+
+    finalScore.innerText = `${score}/20`;
+
+}
+
+/* ==========================================
+   RESTART
+   ========================================== */
+
+function restartGame(){
+
+    currentQuestion = 0;
+    score = 0;
+
+    scoreEl.innerText = 0;
+
+    finishScreen.classList.remove("show");
+
+    gameArea.style.display = "block";
+
+    loadQuestion();
+
+}
+
+/* ==========================================
+   START
+   ========================================== */
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
+```

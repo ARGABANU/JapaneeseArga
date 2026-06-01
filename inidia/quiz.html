@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nihongo Memory - Quiz</title>
+
+<style>
+:root{
+    --green:#22c55e;
+    --green-dark:#16a34a;
+    --green-light:#bbf7d0;
+    --blue:#3b82f6;
+    --bg:#f0fdf4;
+    --white:#ffffff;
+    --text:#1e293b;
+    --gray:#64748b;
+    --red:#ef4444;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#f0fdf4,#dbeafe);
+    min-height:100vh;
+    color:var(--text);
+}
+
+/* HEADER */
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px;
+    flex-wrap:wrap;
+}
+
+.logo{
+    font-size:24px;
+    font-weight:900;
+    color:var(--green-dark);
+}
+
+.back-btn{
+    text-decoration:none;
+    background:white;
+    padding:10px 16px;
+    border-radius:12px;
+    font-weight:700;
+    color:var(--green-dark);
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    transition:0.2s;
+}
+.back-btn:hover{
+    background:var(--green);
+    color:white;
+}
+
+/* SCORE */
+.score{
+    background:white;
+    padding:10px 14px;
+    border-radius:12px;
+    font-weight:700;
+}
+
+/* CONTAINER */
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+/* CARD */
+.card{
+    background:white;
+    border-radius:25px;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    text-align:center;
+    animation:fade 0.3s ease;
+}
+
+@keyframes fade{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+.category{
+    display:inline-block;
+    background:var(--green-light);
+    color:var(--green-dark);
+    padding:6px 14px;
+    border-radius:999px;
+    font-weight:700;
+    margin-bottom:20px;
+}
+
+.question{
+    font-size:28px;
+    font-weight:800;
+    margin:20px 0;
+}
+
+/* INPUT */
+input{
+    width:100%;
+    padding:15px;
+    font-size:18px;
+    border-radius:14px;
+    border:2px solid #ddd;
+    outline:none;
+    text-align:center;
+}
+input:focus{
+    border-color:var(--green);
+}
+
+/* BUTTON */
+button{
+    margin-top:20px;
+    padding:14px 20px;
+    border:none;
+    border-radius:14px;
+    background:var(--green);
+    color:white;
+    font-weight:800;
+    cursor:pointer;
+    transition:0.2s;
+}
+button:hover{
+    background:var(--green-dark);
+}
+
+/* FEEDBACK */
+.feedback{
+    margin-top:20px;
+    font-weight:700;
+    padding:12px;
+    border-radius:12px;
+}
+.correct{background:#dcfce7;color:#166534;}
+.wrong{background:#fee2e2;color:#991b1b;}
+
+/* PROGRESS */
+.progress{
+    height:12px;
+    background:#e5e7eb;
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:20px;
+}
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--green),var(--blue));
+    transition:0.3s;
+}
+
+/* FINISH */
+.finish{
+    display:none;
+    text-align:center;
+    padding:40px;
+}
+.finish h1{
+    font-size:40px;
+}
+.finish p{
+    font-size:20px;
+    margin:10px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <a class="back-btn" href="index.html">⬅ Kembali</a>
+    <div class="logo">NIHONGO QUIZ</div>
+    <div class="score">Score: <span id="score">0</span></div>
+</header>
+
+<div class="container">
+
+    <div class="card" id="quizCard">
+
+        <div class="category" id="category">Kategori</div>
+
+        <div class="question" id="question">Pertanyaan</div>
+
+        <input id="answer" placeholder="Ketik jawaban romaji..." />
+
+        <button onclick="checkAnswer()">CEK JAWABAN</button>
+
+        <div class="feedback" id="feedback" style="display:none;"></div>
+
+        <button onclick="nextQuestion()" id="nextBtn" style="display:none;">
+            Soal Berikutnya
+        </button>
+
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+    </div>
+
+    <div class="finish" id="finish">
+        <h1>🎉 Selesai</h1>
+        <p>Skor kamu:</p>
+        <h2 id="finalScore">0</h2>
+        <button onclick="location.reload()">Main Lagi</button>
+    </div>
+
+</div>
+
+<script>
+
+/* ================= VOCAB ================= */
+
+const vocabulary = {
+  "Warna / Sifat":[
+    ["あかい","akai","merah"],
+    ["あおい","aoi","biru"]
+  ],
+  "Tempat / Alam":[
+    ["さか","saka","tanjakan"],
+    ["せかい","sekai","dunia"],
+    ["くに","kuni","negara"],
+    ["やま","yama","gunung"],
+    ["かわ","kawa","sungai"],
+    ["うみ","umi","laut"],
+    ["ゆき","yuki","salju"],
+    ["あめ","ame","hujan"],
+    ["くも","kumo","awan"]
+  ],
+  "Hewan":[
+    ["うま","uma","kuda"],
+    ["ねこ","neko","kucing"],
+    ["いぬ","inu","anjing"],
+    ["さかな","sakana","ikan"],
+    ["かに","kani","kepiting"],
+    ["さる","saru","monyet"],
+    ["むし","mushi","serangga"]
+  ]
+};
+
+/* ================= FLATTEN FIX ================= */
+
+let pool = [];
+
+Object.entries(vocabulary).forEach(([cat, items])=>{
+  items.forEach(v=>{
+    pool.push({
+      cat,
+      jp:v[0],
+      romaji:v[1],
+      meaning:v[2]
+    });
+  });
+});
+
+/* ================= GAME SETUP ================= */
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+/* ambil 10 soal unik */
+let questions = shuffle([...pool]).slice(0,10);
+
+let current = 0;
+let score = 0;
+let question = null;
+
+/* ================= DOM ================= */
+
+const categoryEl = document.getElementById("category");
+const questionEl = document.getElementById("question");
+const answerEl = document.getElementById("answer");
+const feedbackEl = document.getElementById("feedback");
+const scoreEl = document.getElementById("score");
+const progressBar = document.getElementById("progressBar");
+
+/* ================= LOAD ================= */
+
+function load(){
+  question = questions[current];
+
+  categoryEl.innerText = question.cat;
+  questionEl.innerText = question.jp; // FIX: soal = hiragana
+
+  answerEl.value = "";
+  feedbackEl.style.display = "none";
+
+  document.getElementById("nextBtn").style.display = "none";
+
+  progressBar.style.width = ((current)/10)*100 + "%";
+}
+
+/* ================= CHECK ================= */
+
+function checkAnswer(){
+
+  let val = answerEl.value.trim().toLowerCase();
+
+  let correct = question.romaji.toLowerCase();
+
+  if(val === correct){
+    score++;
+    scoreEl.innerText = score;
+
+    feedbackEl.style.display="block";
+    feedbackEl.className="feedback correct";
+    feedbackEl.innerHTML =
+      `✔ Benar! <br>${question.jp} = ${question.romaji}`;
+  } else {
+    feedbackEl.style.display="block";
+    feedbackEl.className="feedback wrong";
+    feedbackEl.innerHTML =
+      `✖ Salah!<br>Jawaban: ${question.romaji}`;
+  }
+
+  document.getElementById("nextBtn").style.display="inline-block";
+}
+
+/* ================= NEXT ================= */
+
+function nextQuestion(){
+  current++;
+
+  if(current >= questions.length){
+    finish();
+    return;
+  }
+
+  load();
+}
+
+/* ================= FINISH ================= */
+
+function finish(){
+  document.getElementById("quizCard").style.display="none";
+  document.getElementById("finish").style.display="block";
+
+  document.getElementById("finalScore").innerText =
+    `${score} / ${questions.length}`;
+}
+
+load();
+
+</script>
+
+</body>
+</html>

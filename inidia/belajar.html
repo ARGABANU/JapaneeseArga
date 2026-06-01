@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nihongo Memory - Belajar</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --green:#22c55e;
+    --green-dark:#16a34a;
+    --green-light:#dcfce7;
+    --blue:#3b82f6;
+    --bg:#f0fdf4;
+    --text:#1e293b;
+    --muted:#64748b;
+    --white:#fff;
+    --shadow:0 8px 24px rgba(0,0,0,.08);
+    --radius:20px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Nunito',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    padding:20px;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.back-btn{
+    text-decoration:none;
+    background:white;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:var(--shadow);
+    color:black;
+    font-weight:900;
+}
+
+.title h1{
+    font-size:1.6rem;
+}
+
+.title p{
+    color:var(--muted);
+}
+
+.search{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:15px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+    font-size:1rem;
+}
+
+.stats{
+    background:white;
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+}
+
+.stats h2{
+    color:var(--green-dark);
+}
+
+.category{
+    margin-bottom:25px;
+}
+
+.category-title{
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:white;
+    padding:12px 18px;
+    border-radius:15px;
+    font-weight:800;
+    margin-bottom:10px;
+}
+
+.word-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:12px;
+}
+
+.word-card{
+    background:white;
+    border-radius:18px;
+    padding:15px;
+    box-shadow:var(--shadow);
+    transition:.25s;
+}
+
+.word-card:hover{
+    transform:translateY(-5px);
+}
+
+.hira{
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:1.8rem;
+    font-weight:700;
+}
+
+.romaji{
+    color:var(--blue);
+    font-weight:700;
+}
+
+.meaning{
+    color:var(--green-dark);
+    font-weight:800;
+    margin-top:8px;
+}
+
+.hidden{
+    display:none;
+}
+</style>
+</head>
+<body>
+    
+
+<div class="container">
+
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+
+        <div class="title">
+            <h1>📚 Mode Belajar</h1>
+            <p>Pelajari kosakata Jepang dasar</p>
+        </div>
+    </div>
+
+    <input
+        type="text"
+        id="search"
+        class="search"
+        placeholder="Cari kosakata..."
+    >
+
+    <div class="stats">
+        <h2 id="totalWords">0 Kata</h2>
+        <p>Semua kosakata yang dipelajari</p>
+    </div>
+
+    <div id="content"></div>
+
+</div>
+
+<script>
+
+const vocabulary = {
+
+"Warna / Sifat":[
+    ["あかい","akai","merah"],
+    ["あおい","aoi","biru"]
+],
+
+"Tempat / Alam":[
+    ["さか","saka","tanjakan"],
+    ["せかい","sekai","dunia"],
+    ["くに","kuni","negara"],
+    ["やま","yama","gunung"],
+    ["かわ","kawa","sungai"],
+    ["うみ","umi","laut"],
+    ["ゆき","yuki","salju"],
+    ["あめ","ame","hujan"],
+    ["くも","kumo","awan"]
+],
+
+"Hewan":[
+    ["うま","uma","kuda"],
+    ["ねこ","neko","kucing"],
+    ["いぬ","inu","anjing"],
+    ["さかな","sakana","ikan"],
+    ["かに","kani","kepiting"],
+    ["さる","saru","monyet"],
+    ["むし","mushi","serangga"]
+],
+
+"Bagian Tubuh":[
+    ["みみ","mimi","telinga"],
+    ["め","me","mata"],
+    ["はな","hana","hidung / bunga"],
+    ["くち","kuchi","mulut"],
+    ["て","te","tangan"],
+    ["あし","ashi","kaki"],
+    ["つの","tsuno","tanduk"],
+    ["ほね","hone","tulang"]
+],
+
+"Benda Sehari-hari":[
+    ["いす","isu","kursi"],
+    ["え","e","gambar"],
+    ["しお","shio","garam"],
+    ["かい","kai","kerang"],
+    ["はかり","hakari","timbangan"],
+    ["せんす","sensu","kipas"],
+    ["かばん","kaban","tas"],
+    ["ふえ","fue","suling"],
+    ["いと","ito","benang"],
+    ["はし","hashi","jembatan"],
+    ["しろ","shiro","kastil"],
+    ["へい","hei","tembok"],
+    ["ほし","hoshi","bintang"]
+],
+
+"Makanan / Dapur":[
+    ["さけ","sake","salmon / sake"],
+    ["すいか","suika","semangka"]
+],
+
+"Waktu / Musim":[
+    ["あき","aki","musim gugur"],
+    ["なつ","natsu","musim panas"],
+    ["きせつ","kisetsu","musim"],
+    ["おととい","ototoi","kemarin lusa"],
+    ["あした","ashita","besok"],
+    ["らいねん","rainen","tahun depan"]
+],
+
+"Sekolah / Tulisan":[
+    ["しかく","shikaku","kotak / persegi"],
+    ["きそく","kisoku","peraturan"],
+    ["うそ","uso","bohong"],
+    ["へんか","henka","perubahan"]
+],
+
+"Perasaan / Pikiran":[
+    ["ゆめ","yume","mimpi"],
+    ["こころ","kokoro","hati / perasaan"]
+],
+
+"Alam & Tumbuhan":[
+    ["はな","hana","bunga"],
+    ["にわ","niwa","taman"],
+    ["さくら","sakura","bunga sakura"]
+],
+
+"Kata Kerja / Aktivitas":[
+    ["あう","au","bertemu"],
+    ["かいもの","kaimono","belanja"]
+],
+
+"Tempat / Posisi":[
+    ["そこ","soko","di situ"],
+    ["ここ","koko","di sini"],
+    ["えき","eki","stasiun"]
+]
+
+};
+
+const content = document.getElementById("content");
+
+function renderWords(search=""){
+
+    content.innerHTML = "";
+
+    let total = 0;
+
+    Object.keys(vocabulary).forEach(category=>{
+
+        const words = vocabulary[category].filter(word=>{
+
+            return (
+                word[0].includes(search) ||
+                word[1].toLowerCase().includes(search.toLowerCase()) ||
+                word[2].toLowerCase().includes(search.toLowerCase())
+            );
+
+        });
+
+        if(words.length===0) return;
+
+        total += words.length;
+
+        let html = `
+        <div class="category">
+
+            <div class="category-title">
+                ${category}
+            </div>
+
+            <div class="word-grid">
+        `;
+
+        words.forEach(word=>{
+
+            html += `
+            <div class="word-card">
+
+                <div class="hira">${word[0]}</div>
+
+                <div class="romaji">${word[1]}</div>
+
+                <div class="meaning">${word[2]}</div>
+
+            </div>
+            `;
+
+        });
+
+        html += `
+            </div>
+        </div>
+        `;
+
+        content.innerHTML += html;
+
+    });
+
+    document.getElementById("totalWords").textContent =
+        total + " Kata";
+
+}
+
+renderWords();
+
+document
+.getElementById("search")
+.addEventListener("input",e=>{
+
+    renderWords(e.target.value);
+
+});
+
+</script>
+
+</body>
+</html>
