@@ -1,287 +1,290 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Match Hiragana Game</title>
+  <meta charset="UTF-8">
+  <title>Japanese Practice</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-<style>
-body{
-  font-family:Arial;
-  background:linear-gradient(135deg,#f0fdf4,#dbeafe);
-  min-height:100vh;
-}
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 420px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
 
-header{
-  display:flex;
-  justify-content:space-between;
-  padding:20px;
-}
+    .problem {
+      background: #eef3ff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
 
-.score{
-  background:#fff;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:bold;
-}
+    button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
 
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:20px;
-}
+    .hint { background: orange; }
+    .mic { background: green; color: white; }
+    .next { background: #4a6cf7; color: white; }
 
-.board{
-  display:flex;
-  justify-content:space-between;
-  margin-top:30px;
-}
+    .result {
+      margin-top: 15px;
+      white-space: pre-line;
+      font-weight: bold;
+    }
 
-.column{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
+    .speech {
+      font-size: 14px;
+      margin-top: 10px;
+    }
 
-.item{
-  background:#fff;
-  padding:14px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:bold;
-  min-width:130px;
-  text-align:center;
-  transition:0.2s;
-  box-shadow:0 5px 12px rgba(0,0,0,0.1);
-}
-
-.item:hover{transform:scale(1.05);}
-
-.left .item{border-left:5px solid #3b82f6;}
-.right .item{border-right:5px solid #22c55e;}
-
-.selected{
-  outline:3px solid #60a5fa;
-}
-
-.correct{
-  background:#dcfce7 !important;
-  cursor:default;
-  pointer-events:none;
-}
-
-.finish{
-  display:none;
-  text-align:center;
-  margin-top:40px;
-}
-
-button{
-  padding:12px 18px;
-  border:none;
-  border-radius:10px;
-  background:#22c55e;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-</style>
+  </style>
 </head>
-
 <body>
 
-<header>
-  <div><b>Match Game</b></div>
-  <div class="score">Score: <span id="score">0</span></div>
-</header>
-
 <div class="container">
+  <h2>🗾 Japanese Practice</h2>
 
-  <div class="board" id="board">
-    <div class="column left" id="left"></div>
-    <div class="column right" id="right"></div>
-  </div>
+  <div class="problem" id="problem"></div>
 
-  <div class="finish" id="finish">
-    <h1>🎉 Selesai!</h1>
-    <h2 id="result"></h2>
-    <button onclick="location.reload()">Main Lagi</button>
-  </div>
+  <button class="hint" onclick="showHint()">💡 Hint</button>
+  <button class="mic" onclick="startRecognition()">🎤 Speak</button>
+  <button class="next" onclick="nextQuestion()">➡ Next</button>
 
+  <div class="speech" id="speech"></div>
+  <div class="result" id="result"></div>
 </div>
 
 <script>
-
-/* ===== DATA ===== */
-const pool = [
-
-  // Warna / Sifat
-  ["あかい","akai","merah"],
-  ["あおい","aoi","biru"],
-
-  // Tempat / Alam
-  ["さか","saka","tanjakan"],
-  ["せかい","sekai","dunia"],
-  ["くに","kuni","negara"],
-  ["やま","yama","gunung"],
-  ["かわ","kawa","sungai"],
-  ["うみ","umi","laut"],
-  ["ゆき","yuki","salju"],
-  ["あめ","ame","hujan"],
-  ["くも","kumo","awan"],
-
-  // Hewan
-  ["うま","uma","kuda"],
-  ["ねこ","neko","kucing"],
-  ["いぬ","inu","anjing"],
-  ["さかな","sakana","ikan"],
-  ["かに","kani","kepiting"],
-  ["さる","saru","monyet"],
-  ["むし","mushi","serangga"],
-
-  // Bagian Tubuh
-  ["みみ","mimi","telinga"],
-  ["め","me","mata"],
-  ["はな","hana","hidung / bunga"],
-  ["くち","kuchi","mulut"],
-  ["て","te","tangan"],
-  ["あし","ashi","kaki"],
-  ["つの","tsuno","tanduk"],
-  ["ほね","hone","tulang"],
-
-  // Benda Sehari-hari
-  ["いす","isu","kursi"],
-  ["え","e","gambar"],
-  ["しお","shio","garam"],
-  ["かい","kai","kerang"],
-  ["はかり","hakari","timbangan"],
-  ["せんす","sensu","kipas"],
-  ["かばん","kaban","tas"],
-  ["ふえ","fue","suling"],
-  ["いと","ito","benang"],
-  ["はし","hashi","jembatan"],
-  ["しろ","shiro","kastil"],
-  ["へい","hei","tembok"],
-  ["ほし","hoshi","bintang"],
-
-  // Makanan / Dapur
-  ["さけ","sake","salmon / sake"],
-  ["すいか","suika","semangka"],
-
-  // Waktu / Musim
-  ["あき","aki","musim gugur"],
-  ["なつ","natsu","musim panas"],
-  ["きせつ","kisetsu","musim"],
-  ["おととい","ototoi","kemarin lusa"],
-  ["あした","ashita","besok"],
-  ["らいねん","rainen","tahun depan"],
-
-  // Sekolah / Tulisan
-  ["しかく","shikaku","kotak / persegi"],
-  ["きそく","kisoku","peraturan"],
-  ["うそ","uso","bohong"],
-  ["へんか","henka","perubahan"],
-
-  // Perasaan / Pikiran
-  ["ゆめ","yume","mimpi"],
-  ["こころ","kokoro","hati / perasaan"],
-
-  // Alam & Tumbuhan
-  ["はな","hana","bunga"],
-  ["にわ","niwa","taman"],
-  ["さくら","sakura","bunga sakura"],
-
-  // Kata Kerja / Aktivitas
-  ["あう","au","bertemu"],
-  ["かいもの","kaimono","belanja"],
-
-  // Tempat / Posisi
-  ["そこ","soko","di situ"],
-  ["ここ","koko","di sini"],
-  ["えき","eki","stasiun"]
-
-];
-
-/* ambil 10 */
-const gameData = pool.sort(()=>Math.random()-0.5).slice(0,10);
-
-let score = 0;
-let selectedLeft = null;
-
-/* split kiri kanan */
-let leftData = [...gameData].sort(()=>Math.random()-0.5);
-let rightData = [...gameData].sort(()=>Math.random()-0.5);
-
-const leftBox = document.getElementById("left");
-const rightBox = document.getElementById("right");
-
-/* LEFT */
-leftData.forEach((item,idx)=>{
-  const div = document.createElement("div");
-  div.className="item";
-  div.innerText = item[0];
-
-  div.onclick = ()=>{
-    if(div.classList.contains("correct")) return;
-
-    document.querySelectorAll(".left .item")
-    .forEach(i=>i.classList.remove("selected"));
-
-    div.classList.add("selected");
-    selectedLeft = item;
-  };
-
-  leftBox.appendChild(div);
-});
-
-/* RIGHT */
-rightData.forEach((item,idx)=>{
-  const div = document.createElement("div");
-  div.className="item";
-  div.innerText = item[1];
-
-  div.onclick = ()=>{
-
-    if(!selectedLeft) return;
-    if(div.classList.contains("correct")) return;
-
-    if(selectedLeft[0] === item[0]){
-
-      div.classList.add("correct");
-      document.querySelectorAll(".left .item").forEach(el=>{
-        if(el.innerText === selectedLeft[0]){
-          el.classList.add("correct");
-        }
-      });
-
-      score++;
-      document.getElementById("score").innerText = score;
-
-      selectedLeft = null;
-
-      if(score === 10){
-        finishGame();
-      }
-
-    } else {
-      // salah → reset selection
-      document.querySelectorAll(".left .item")
-      .forEach(i=>i.classList.remove("selected"));
-
-      selectedLeft = null;
-    }
-  };
-
-  rightBox.appendChild(div);
-});
-
-function finishGame(){
-  document.getElementById("board").style.display="none";
-  document.getElementById("finish").style.display="block";
-
-  document.getElementById("result").innerText =
-    `selamat anda menyelesaikan soalgame sebanyak ${score}`;
+const questions = [
+{
+  problem: "Greeting first time",
+  answer: [
+    "こんにちははじめまして",
+    "こんにちは初めまして"
+  ],
+  parts: ["こんにちは", "はじめまして"],
+  hint: "Remember Konnichiwa itu halo"
+},
+{
+  problem: "Introduce yourself",
+  answer: [
+    "わたしはあるがです"
+  ],
+  parts: ["わたし","は","あるが","です"],
+  hint: "Remember Watashi itu aku"
+},
+{
+  problem: "Ask origin",
+  answer: [
+    "どこからきましたか",
+    "どこから来ましたか"
+  ],
+  parts: ["どこ","から","きました","か"],
+  hint: "Remember Doko itu dimana"
+},
+{
+  problem: "Say goodbye",
+  answer: [
+    "さようならまたね"
+  ],
+  parts: ["さようなら","またね"],
+  hint: "Remember Mata ne itu see you later"
+},
+{
+  problem: "Ask condition",
+  answer: [
+    "げんきですか",
+    "元気ですか"
+  ],
+  parts: ["げんき","です","か"],
+  hint: "Remember genki itu nanya kabar"
+},
+{
+  problem: "Ask age",
+  answer: [
+    "なんさいですか",
+    "何歳ですか"
+  ],
+  parts: ["なんさい","です","か"],
+  hint: "Remember sai itu umur"
+},
+{
+  problem: "Say thank you",
+  answer: [
+    "ありがとうございます"
+  ],
+  parts: ["ありがとう","ございます"],
+  hint: "Remember arigatou itu terima kasih"
+},
+{
+  problem: "Apologize",
+  answer: [
+    "すみません"
+  ],
+  parts: ["すみません"],
+  hint: "Remember sumimasen itu maaf"
+},
+{
+  problem: "Ask price",
+  answer: [
+    "いくらですか"
+  ],
+  parts: ["いくら","です","か"],
+  hint: "Remember ikura itu berapa"
+},
+{
+  problem: "Ask name",
+  answer: [
+    "あなたのなまえはなんですか",
+    "あなたの名前は何ですか"
+  ],
+  parts: ["あなた","の","なまえ","は","なん","です","か"],
+  hint: "Remember anata no itu milikmu"
 }
+];
+const kanjiMap = {
+  "私": "わたし",
+  "初めまして": "はじめまして",
+  "来ました": "きました",
+  "名前": "なまえ",
+  "元気": "げんき",
+  "何歳": "なんさい",
+  "何": "なん"
+};
+let current = 0;
+
+function loadQuestion() {
+  document.getElementById("problem").innerHTML =
+    "<strong>Problem Case:</strong><br>" + questions[current].problem;
+
+  document.getElementById("result").textContent = "";
+  document.getElementById("speech").textContent = "";
+}
+
+function showHint() {
+  alert(questions[current].hint);
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) current = 0;
+  loadQuestion();
+}
+
+function startRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Browser tidak support 😢");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "ja-JP";
+  recognition.start();
+
+  document.getElementById("result").textContent = "🎧 Listening...";
+
+  recognition.onresult = function(event) {
+    let speech = event.results[0][0].transcript;
+    document.getElementById("speech").textContent = "You said: " + speech;
+
+    checkAnswer(speech);
+  };
+}
+function normalize(text) {
+
+  for (let kanji in kanjiMap) {
+    text = text.replaceAll(kanji, kanjiMap[kanji]);
+  }
+
+  return text
+    .toLowerCase()
+    .replace(/[？?！!。、,]/g, "")
+    .replace(/[ー〜～]/g, "")
+    .replace(/\s/g, "")
+    .trim();
+}
+function similarity(a, b) {
+
+  let same = 0;
+
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    if (a[i] === b[i]) same++;
+  }
+
+  return same / Math.max(a.length, b.length);
+}
+function checkAnswer(speech) {
+
+  const user = normalize(speech);
+
+  const question = questions[current];
+
+  // cek apakah cocok dengan salah satu jawaban
+  const isCorrect = question.answer.some(ans => {
+    return normalize(ans) === user;
+  });
+
+  if (isCorrect) {
+    document.getElementById("result").textContent =
+      "✅ 正解！ Excellent!";
+    return;
+  }
+  const almostCorrect = question.answer.some(ans => {
+  return similarity(user, normalize(ans)) >= 0.85;
+});
+
+if (almostCorrect) {
+  document.getElementById("result").textContent =
+    "🟡 Hampir benar! Coba ulangi sedikit lagi.";
+  return;
+}
+  // cek bagian yang hilang
+  let missing = [];
+
+  question.parts.forEach(part => {
+
+    const p = normalize(part);
+
+    if (!user.includes(p)) {
+      missing.push(part);
+    }
+  });
+
+  let feedback = "❌ ちがいます\n";
+
+  if (missing.length > 0) {
+    feedback += "\nKurang di bagian:\n";
+
+    missing.forEach(m => {
+      feedback += "- " + m + "\n";
+    });
+  }
+
+  feedback += "\n👉 Jawaban benar:\n";
+  feedback += question.answer[0];
+
+  document.getElementById("result").textContent =
+    feedback;
+}
+
+loadQuestion();
 
 </script>
 
