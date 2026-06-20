@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語会話 · Nihongo Tutor</title>
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --ink:        #1a1a2e;
+    --indigo:     #16213e;
+    --indigo-mid: #0f3460;
+    --red:        #c0392b;
+    --red-soft:   #e74c3c;
+    --gold:       #d4a017;
+    --paper:      #f7f3ed;
+    --paper-warm: #efe9df;
+    --paper-dark: #e0d8cc;
+    --sage:       #5a7a6e;
+    --sage-light: #8aab9e;
+    --white:      #ffffff;
+    --text-main:  #2c2c2c;
+    --text-soft:  #6b6b6b;
+    --text-ghost: #a0a0a0;
+    --shadow-soft: 0 2px 12px rgba(26,26,46,0.08);
+    --shadow-card: 0 4px 24px rgba(26,26,46,0.12);
+    --radius:     12px;
+    --radius-lg:  20px;
+  }
+
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+    background: var(--paper);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--indigo);
+    color: var(--white);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  }
+  .app-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-header .logo-jp {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--white);
+  }
+  .app-header .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red-soft);
+    display: inline-block;
+    margin: 0 4px;
+  }
+  .app-header .logo-en {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .scenario-badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.8);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .app-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 16px 120px;
+    gap: 0;
+  }
+
+  /* ── SCENARIO INTRO ── */
+  .scenario-intro {
+    background: var(--indigo-mid);
+    color: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scenario-intro::before {
+    content: '一';
+    position: absolute;
+    right: -10px; top: -20px;
+    font-size: 120px;
+    color: rgba(255,255,255,0.04);
+    font-weight: 900;
+    pointer-events: none;
+  }
+  .scenario-intro .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--sage-light);
+    margin-bottom: 6px;
+  }
+  .scenario-intro h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--white);
+  }
+  .scenario-intro p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.6;
+  }
+
+  /* ── CONVERSATION THREAD ── */
+  .conversation-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* past messages */
+  .msg-past {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeSlide 0.4s ease;
+  }
+  .msg-past.npc { align-items: flex-start; }
+  .msg-past.user-done { align-items: flex-end; }
+
+  .msg-past .avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .avatar.npc { background: var(--indigo-mid); }
+  .avatar.user { background: var(--sage); }
+  .avatar-name {
+    font-size: 11px;
+    color: var(--text-ghost);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .bubble {
+    max-width: 80%;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    font-size: 19px;
+    line-height: 1.6;
+    letter-spacing: 1px;
+  }
+  .bubble.npc {
+    background: var(--white);
+    border-top-left-radius: 4px;
+    box-shadow: var(--shadow-soft);
+    color: var(--ink);
+  }
+  .bubble.user {
+    background: var(--indigo-mid);
+    border-top-right-radius: 4px;
+    color: var(--white);
+  }
+  .bubble .romaji {
+    font-size: 11px;
+    color: var(--text-ghost);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .bubble.user .romaji { color: rgba(255,255,255,0.45); }
+
+  /* ── ACTIVE STEP ── */
+  .active-step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeSlide 0.5s ease;
+  }
+
+  .active-npc-bubble {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border-top-left-radius: 4px;
+    box-shadow: var(--shadow-card);
+    padding: 22px 26px;
+    border-left: 4px solid var(--indigo-mid);
+    max-width: 85%;
+  }
+  .active-npc-bubble .npc-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--indigo-mid);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .active-npc-bubble .jp-sentence {
+    font-size: 28px;
+    line-height: 1.5;
+    letter-spacing: 2px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .active-npc-bubble .sentence-hint {
+    font-size: 13px;
+    color: var(--text-ghost);
+    font-style: italic;
+  }
+
+  /* ── USER INPUT ZONE ── */
+  .user-input-zone {
+    background: var(--paper-warm);
+    border: 2px dashed var(--paper-dark);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 0.3s, background 0.3s;
+    align-self: flex-end;
+    width: 100%;
+  }
+  .user-input-zone.listening {
+    border-color: var(--red-soft);
+    background: #fff5f5;
+  }
+  .user-input-zone.success {
+    border-color: var(--sage);
+    background: #f0f7f5;
+  }
+  .user-input-zone.error {
+    border-color: var(--gold);
+    background: #fdf8ed;
+  }
+
+  .input-zone-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  /* transcript display */
+  .transcript-box {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    min-height: 54px;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: var(--ink);
+    line-height: 1.5;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .transcript-box .interim {
+    color: var(--text-ghost);
+    font-style: italic;
+  }
+  .transcript-placeholder {
+    color: var(--text-ghost);
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* mic & controls */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mic-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: var(--indigo-mid);
+    color: var(--white);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 3px 10px rgba(15,52,96,0.25);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .mic-btn:hover { transform: scale(1.06); background: var(--indigo); }
+  .mic-btn.recording {
+    background: var(--red-soft);
+    box-shadow: 0 0 0 0 rgba(231,76,60,0.4);
+    animation: pulse 1.2s infinite;
+  }
+  .mic-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(231,76,60,0.5); }
+    70%  { box-shadow: 0 0 0 14px rgba(231,76,60,0); }
+    100% { box-shadow: 0 0 0 0   rgba(231,76,60,0); }
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 18px;
+    border-radius: 24px;
+    border: 1.5px solid transparent;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-submit {
+    background: var(--sage);
+    color: var(--white);
+    border-color: var(--sage);
+  }
+  .btn-submit:hover { background: #4a6a5e; }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-retry {
+    background: transparent;
+    color: var(--text-soft);
+    border-color: var(--paper-dark);
+  }
+  .btn-retry:hover { border-color: var(--text-soft); color: var(--text-main); }
+
+  .btn-skip {
+    background: transparent;
+    color: var(--text-ghost);
+    border-color: transparent;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .btn-skip:hover { color: var(--text-soft); }
+
+  .btn-next {
+    background: var(--indigo-mid);
+    color: var(--white);
+    border-color: var(--indigo-mid);
+  }
+  .btn-next:hover { background: var(--indigo); }
+
+  .mic-hint {
+    font-size: 12px;
+    color: var(--text-ghost);
+    font-style: italic;
+  }
+
+  /* ── TUTOR PANEL ── */
+  .tutor-panel {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-card);
+    border-top: 3px solid transparent;
+    animation: slideUp 0.4s ease;
+  }
+  .tutor-panel.correct { border-top-color: var(--sage); }
+  .tutor-panel.partial { border-top-color: var(--gold); }
+  .tutor-panel.wrong   { border-top-color: var(--red-soft); }
+
+  .tutor-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .tutor-icon {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--paper-warm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .tutor-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .tutor-panel.correct .tutor-title { color: var(--sage); }
+  .tutor-panel.partial  .tutor-title { color: #b8860b; }
+  .tutor-panel.wrong    .tutor-title { color: var(--red); }
+
+  .tutor-main { font-size: 14px; line-height: 1.7; color: var(--text-main); margin-bottom: 14px; }
+  .tutor-main strong { color: var(--ink); }
+
+  .meaning-block {
+    background: var(--paper);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--indigo-mid);
+  }
+  .meaning-block .meaning-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--indigo-mid);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .meaning-block .meaning-id {
+    font-size: 15px;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .meaning-block .meaning-en {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  .usage-block {
+    background: #eef4f2;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--sage);
+    line-height: 1.6;
+  }
+  .usage-block::before {
+    content: '💬 ';
+  }
+
+  .breakdown-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .breakdown-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .breakdown-list .part-jp {
+    font-size: 17px;
+    color: var(--ink);
+    letter-spacing: 1px;
+    min-width: 80px;
+    font-weight: 600;
+  }
+  .breakdown-list .part-info {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  .error-highlight {
+    background: #fff3cd;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 600;
+    color: #856404;
+  }
+  .correct-highlight {
+    background: #d1e7dd;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 600;
+    color: #0a3622;
+  }
+
+  /* ── COMPLETION SCREEN ── */
+  .completion-screen {
+    text-align: center;
+    padding: 48px 24px;
+    animation: fadeSlide 0.6s ease;
+  }
+  .completion-screen .big-emoji {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .completion-screen h2 {
+    font-size: 26px;
+    color: var(--indigo);
+    margin-bottom: 10px;
+  }
+  .completion-screen p {
+    font-size: 15px;
+    color: var(--text-soft);
+    line-height: 1.7;
+    max-width: 400px;
+    margin: 0 auto 28px;
+  }
+  .btn-restart {
+    background: var(--indigo-mid);
+    color: var(--white);
+    border: none;
+    padding: 14px 32px;
+    border-radius: 32px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .btn-restart:hover { background: var(--indigo); transform: scale(1.03); }
+
+  /* ── SCENARIO SELECTOR ── */
+  .scenario-selector {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.92);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.3s ease;
+  }
+  .selector-card {
+    background: var(--paper);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .selector-card h1 {
+    font-size: 28px;
+    color: var(--indigo);
+    margin-bottom: 6px;
+    font-weight: 900;
+  }
+  .selector-card .subtitle {
+    font-size: 14px;
+    color: var(--text-soft);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .scenario-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .scenario-card {
+    background: var(--white);
+    border: 2px solid var(--paper-dark);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .scenario-card:hover {
+    border-color: var(--indigo-mid);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-2px);
+  }
+  .scenario-card .sc-emoji { font-size: 24px; margin-bottom: 6px; display: block; }
+  .scenario-card .sc-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+  .scenario-card .sc-desc  { font-size: 12px; color: var(--text-soft); }
+  .sc-steps-count {
+    display: inline-block;
+    background: var(--paper-warm);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--text-ghost);
+    margin-top: 6px;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    background: var(--paper-dark);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--indigo-mid);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-ghost);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── SPEECH STATUS PILL ── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .status-pill.listening { background: #fff0ee; color: var(--red-soft); }
+  .status-pill.idle      { background: var(--paper-dark); color: var(--text-soft); }
+  .status-pill .dot      { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-pill.listening .dot { animation: blink 1s infinite; }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.2; }
+  }
+
+  /* ── NPC NOT SUPPORTED ── */
+  .no-speech-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #856404;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--paper-dark); border-radius: 3px; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 540px) {
+    .active-npc-bubble .jp-sentence { font-size: 22px; }
+    .bubble { font-size: 16px; }
+    .selector-card { padding: 24px 20px; }
+  }
+
+  /* hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- SCENARIO SELECTOR OVERLAY -->
+<div class="scenario-selector" id="scenarioSelector">
+  <div class="selector-card">
+    <h1>日本語会話</h1>
+    <p class="subtitle">Choose a conversation world to enter. You'll speak with a Japanese person — and a tutor will quietly guide you along the way.</p>
+    <div class="scenario-list" id="scenarioList"></div>
+  </div>
+</div>
+
+<!-- APP HEADER -->
+<header class="app-header">
+  <div class="logo">
+    <span class="logo-jp">会話</span>
+    <span class="logo-dot"></span>
+    <span class="logo-en">Nihongo Tutor</span>
+  </div>
+  <span class="scenario-badge" id="headerBadge">—</span>
+</header>
+
+<!-- MAIN BODY -->
+<main class="app-body" id="appBody">
+
+  <!-- Scenario intro -->
+  <div class="scenario-intro hidden" id="scenarioIntro">
+    <div class="label">場面 · Scenario</div>
+    <h2 id="introTitle"></h2>
+    <p id="introContext"></p>
+  </div>
+
+  <!-- Progress -->
+  <div class="hidden" id="progressWrap">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progressLabel"></div>
+  </div>
+
+  <!-- Conversation thread (past messages) -->
+  <div class="conversation-thread" id="thread"></div>
+
+  <!-- Active step -->
+  <div class="active-step hidden" id="activeStep">
+
+    <!-- NPC bubble -->
+    <div class="active-npc-bubble" id="npcBubble">
+      <div class="npc-label">🧑 <span id="npcName">Yuki</span> says:</div>
+      <div class="jp-sentence" id="jpSentence"></div>
+      <div class="sentence-hint" id="sentenceHint">Listen and repeat the sentence above</div>
+    </div>
+
+    <!-- No speech API warning -->
+    <div class="no-speech-warning hidden" id="noSpeechWarning">
+      ⚠️ Your browser doesn't support the Web Speech API. Please use Chrome or Edge for the full speaking experience. You can still type your answer below.
+      <br><br>
+      <input type="text" id="textFallback" placeholder="Type the sentence in Japanese..." style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid #ffc107;font-size:15px;background:#fffdf0;margin-top:6px;">
+    </div>
+
+    <!-- User input zone -->
+    <div class="user-input-zone" id="userInputZone">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span class="input-zone-label">Your turn · あなたの番</span>
+        <span class="status-pill idle" id="statusPill"><span class="dot"></span><span id="statusText">Ready</span></span>
+      </div>
+
+      <div class="transcript-box" id="transcriptBox">
+        <span class="transcript-placeholder" id="transcriptPlaceholder">Press 🎤 and say the sentence in Japanese…</span>
+        <span id="transcriptFinal"></span>
+        <span class="interim" id="transcriptInterim"></span>
+      </div>
+
+      <div class="controls-row">
+        <button class="mic-btn" id="micBtn" title="Start recording">🎤</button>
+        <div class="action-btns">
+          <button class="btn btn-submit" id="submitBtn" disabled>✓ Check</button>
+          <button class="btn btn-retry"  id="retryBtn">↺ Clear</button>
+          <button class="btn btn-skip"   id="skipBtn">Skip →</button>
+        </div>
+      </div>
+      <div class="mic-hint" id="micHint">Click 🎤 to start · click again to stop</div>
+    </div>
+
+    <!-- Tutor panel (shown after check) -->
+    <div class="tutor-panel hidden" id="tutorPanel">
+      <div class="tutor-header">
+        <div class="tutor-icon">🧑‍🏫</div>
+        <div class="tutor-title" id="tutorTitle">Tutor</div>
+      </div>
+      <div class="tutor-main" id="tutorMain"></div>
+      <div id="tutorExtras"></div>
+      <div class="action-btns" style="margin-top:14px;">
+        <button class="btn btn-next hidden"  id="nextBtn">Continue →</button>
+        <button class="btn btn-retry hidden" id="tryAgainBtn" style="border-color:var(--gold);color:#b8860b;">↺ Try Again</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Completion -->
+  <div class="completion-screen hidden" id="completionScreen">
+    <span class="big-emoji">🎉</span>
+    <h2>よくできました！</h2>
+    <p>You completed the whole conversation! Your Japanese is getting better with every sentence you practice.</p>
+    <button class="btn-restart" onclick="showScenarioSelector()">Choose another scenario</button>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const SCENARIOS = [
+  {
+    id: "first_meeting",
+    emoji: "🤝",
+    title: "First Meeting",
+    titleJP: "はじめまして",
+    context: "You're at school and you've just been introduced to a new Japanese classmate named Yuki. This is your first conversation.",
+    npcName: "Yuki",
+    steps: [
+      {
+        speaker: "npc",
+        sentence: "はじめまして。",
+        romaji: "Hajimemashite.",
+        meaning: { id: "Salam perkenalan, senang bertemu denganmu.", en: "How do you do / Nice to meet you." },
+        usage: "Used the very first time you meet someone — like saying 'Nice to meet you' in English. It's the standard opening of a formal introduction.",
+        breakdown: [
+          { part: "はじめまして", info: "From 初めて (hajimete) = 'for the first time'. Used exclusively on first meetings." }
+        ],
+        accepted: ["はじめまして", "初めまして", "はじめまして。", "初めまして。"]
+      },
+      {
+        speaker: "user",
+        sentence: "はじめまして、どうぞよろしくお願いします。",
+        romaji: "Hajimemashite, dōzo yoroshiku onegaishimasu.",
+        meaning: { id: "Salam perkenalan, mohon bantuannya ya.", en: "Nice to meet you, please treat me well." },
+        usage: "A polite response when meeting someone. よろしく literally means 'please regard me favorably' — it's used to build a warm first impression.",
+        breakdown: [
+          { part: "はじめまして", info: "Nice to meet you (same as the greeting you just heard)" },
+          { part: "どうぞ", info: "Please (adds politeness/invitation)" },
+          { part: "よろしく", info: "Favorably / well — asking them to think well of you" },
+          { part: "お願いします", info: "Onegaishimasu — 'I humbly request'. Together: 'please treat me well'" }
+        ],
+        accepted: [
+          "はじめまして どうぞよろしくお願いします",
+          "初めまして どうぞよろしくお願いします",
+          "はじめまして、どうぞよろしくおねがいします",
+          "はじめまして どうぞよろしくおねがいします",
+          "はじめまして よろしくお願いします",
+          "はじめましてどうぞよろしくおねがいします",
+          "初めましてどうぞよろしくお願いします",
+          "はじめまして、よろしくお願いします"
+        ]
+      },
+      {
+        speaker: "npc",
+        sentence: "お名前は何ですか？",
+        romaji: "Onamae wa nan desu ka?",
+        meaning: { id: "Siapa nama kamu?", en: "What is your name?" },
+        usage: "A polite way to ask someone's name. The お before 名前 is an honorific prefix that makes it more respectful.",
+        breakdown: [
+          { part: "お名前", info: "Onamae — polite/honorific form of 'name'" },
+          { part: "は", info: "Topic marker particle (wa)" },
+          { part: "何ですか", info: "Nan desu ka — 'What is it?' A polite question ending" }
+        ],
+        accepted: ["お名前は何ですか", "おなまえはなんですか", "お名前はなんですか", "おなまえは何ですか"]
+      },
+      {
+        speaker: "user",
+        sentence: "私の名前は（あなたの名前）です。よろしくお願いします！",
+        romaji: "Watashi no namae wa (name) desu. Yoroshiku onegaishimasu!",
+        meaning: { id: "Nama saya adalah (namamu). Senang berkenalan!", en: "My name is (your name). Nice to meet you!" },
+        usage: "The standard self-introduction format. You say your name in the middle slot. In real Japanese conversation, people often just say their name + です directly.",
+        breakdown: [
+          { part: "私の名前", info: "Watashi no namae — 'My name'" },
+          { part: "は", info: "Topic marker wa" },
+          { part: "〜です", info: "Desu — polite 'is/am/are'" },
+          { part: "よろしくお願いします", info: "Yoroshiku onegaishimasu — 'Please treat me well'" }
+        ],
+        accepted: [
+          "わたしのなまえはです よろしくおねがいします",
+          "私の名前はです よろしくお願いします",
+          "わたしのなまえは名前です",
+          "私の名前は名前です よろしくお願いします",
+          "名前です よろしくお願いします",
+          "わたしは名前です よろしくおねがいします",
+          "私は名前です よろしくお願いします",
+          "なまえです よろしくおねがいします",
+          "私の名前はです。よろしくお願いします"
+        ]
+      },
+      {
+        speaker: "npc",
+        sentence: "どこから来ましたか？",
+        romaji: "Doko kara kimashita ka?",
+        meaning: { id: "Kamu berasal dari mana?", en: "Where are you from?" },
+        usage: "A very common question when meeting someone new — especially foreigners. It's warm and shows curiosity about you.",
+        breakdown: [
+          { part: "どこ", info: "Doko — 'where'" },
+          { part: "から", info: "Kara — 'from'" },
+          { part: "来ました", info: "Kimashita — past tense of 'to come'" },
+          { part: "か", info: "Ka — question marker" }
+        ],
+        accepted: ["どこから来ましたか", "どこからきましたか", "どこから来ましたか？", "どこからきましたか？"]
+      },
+      {
+        speaker: "user",
+        sentence: "インドネシアから来ました。",
+        romaji: "Indoneshia kara kimashita.",
+        meaning: { id: "Saya berasal dari Indonesia.", en: "I came from Indonesia." },
+        usage: "You reply with your country + から来ました. You can replace インドネシア with any country name. Simple and natural!",
+        breakdown: [
+          { part: "インドネシア", info: "Indonesia (katakana loanword)" },
+          { part: "から", info: "Kara — 'from'" },
+          { part: "来ました", info: "Kimashita — 'came / I am from'" }
+        ],
+        accepted: [
+          "インドネシアから来ました",
+          "インドネシアからきました",
+          "インドネシアから来ました。",
+          "インドネシアからきました。"
+        ]
+      },
+      {
+        speaker: "npc",
+        sentence: "そうですか！日本語が上手ですね。",
+        romaji: "Sō desu ka! Nihongo ga jōzu desu ne.",
+        meaning: { id: "Oh begitu! Bahasa Jepangmu bagus sekali ya.", en: "Is that so! Your Japanese is really good, isn't it?" },
+        usage: "そうですか (Is that so?) is a very common reaction phrase. ～ですね adds a seeking-agreement nuance, like 'right?' or 'isn't it?'.",
+        breakdown: [
+          { part: "そうですか", info: "Sō desu ka — 'Is that so?' / 'Really?' A common reaction" },
+          { part: "日本語が", info: "Nihongo ga — 'Japanese language (subject)'" },
+          { part: "上手ですね", info: "Jōzu desu ne — 'is skillful, isn't it?'" }
+        ],
+        accepted: ["そうですか 日本語が上手ですね", "そうですかにほんごがじょうずですね", "そうですか！日本語が上手ですね", "そうですか日本語がじょうずですね"]
+      },
+      {
+        speaker: "user",
+        sentence: "ありがとうございます。まだまだです。",
+        romaji: "Arigatō gozaimasu. Mada mada desu.",
+        meaning: { id: "Terima kasih. Saya masih belum cukup baik.", en: "Thank you. I still have a long way to go." },
+        usage: "まだまだ (mada mada) is a humble, modest reply to a compliment. Japanese culture values humility — you don't just say 'thank you, I know!' You deflect with 'I'm not there yet.'",
+        breakdown: [
+          { part: "ありがとう", info: "Arigatō — 'thank you'" },
+          { part: "ございます", info: "Gozaimasu — polite verb suffix, making it more respectful" },
+          { part: "まだまだ", info: "Mada mada — 'not yet / still a long way to go'" },
+          { part: "です", info: "Desu — polite sentence ender" }
+        ],
+        accepted: [
+          "ありがとうございます まだまだです",
+          "ありがとうございます。まだまだです",
+          "ありがとうございます。まだまだです。",
+          "ありがとうございます まだまだです。"
+        ]
+      }
+    ]
+  },
+  {
+    id: "restaurant",
+    emoji: "🍜",
+    title: "Ordering at a Restaurant",
+    titleJP: "レストランで注文",
+    context: "You walk into a Japanese ramen restaurant. The staff greets you and you need to order your meal.",
+    npcName: "Staff",
+    steps: [
+      {
+        speaker: "npc",
+        sentence: "いらっしゃいませ！何名様ですか？",
+        romaji: "Irasshaimase! Nan-mei sama desu ka?",
+        meaning: { id: "Selamat datang! Berapa orang?", en: "Welcome! How many people?" },
+        usage: "いらっしゃいませ is the classic restaurant welcome. You hear it everywhere in Japanese shops and restaurants. 名様 (meisama) is the polite counter for people.",
+        breakdown: [
+          { part: "いらっしゃいませ", info: "Irasshaimase — 'Welcome!' (very polite form used by staff)" },
+          { part: "何名様", info: "Nan-mei sama — 'how many people?' (polite counter)" },
+          { part: "ですか", info: "Desu ka — polite question ending" }
+        ],
+        accepted: ["いらっしゃいませ 何名様ですか", "いらっしゃいませ！何名様ですか？", "いらっしゃいませなんめいさまですか"]
+      },
+      {
+        speaker: "user",
+        sentence: "一人です。",
+        romaji: "Hitori desu.",
+        meaning: { id: "Saya sendiri (satu orang).", en: "Just one person." },
+        usage: "一人 (hitori) means 'one person'. You can also say 二人 (futari) for two, 三人 (sannin) for three. Simple and direct!",
+        breakdown: [
+          { part: "一人", info: "Hitori — one person (irregular counter)" },
+          { part: "です", info: "Desu — polite 'is/am'" }
+        ],
+        accepted: ["一人です", "ひとりです", "一人です。", "ひとりです。"]
+      },
+      {
+        speaker: "npc",
+        sentence: "ご注文はお決まりですか？",
+        romaji: "Go-chūmon wa okimari desu ka?",
+        meaning: { id: "Apakah sudah siap untuk memesan?", en: "Have you decided on your order?" },
+        usage: "This is the standard phrase a waiter uses to ask if you're ready to order. お決まり (okimari) politely means 'have you decided?'",
+        breakdown: [
+          { part: "ご注文", info: "Go-chūmon — 'your order' (honorific ご prefix)" },
+          { part: "は", info: "Topic marker wa" },
+          { part: "お決まり", info: "Okimari — 'decided' (polite form of 決まる)" },
+          { part: "ですか", info: "Desu ka — question ending" }
+        ],
+        accepted: ["ご注文はお決まりですか", "ごちゅうもんはおきまりですか", "ご注文はおきまりですか", "ごちゅうもんはお決まりですか"]
+      },
+      {
+        speaker: "user",
+        sentence: "ラーメンを一つお願いします。",
+        romaji: "Rāmen o hitotsu onegaishimasu.",
+        meaning: { id: "Tolong satu ramen.", en: "One ramen please." },
+        usage: "〜を一つお願いします is the natural way to order one of something. You can swap ラーメン for any dish: 寿司 (sushi), カレー (curry), etc.",
+        breakdown: [
+          { part: "ラーメン", info: "Rāmen — ramen noodles (katakana loanword)" },
+          { part: "を", info: "Object marker particle" },
+          { part: "一つ", info: "Hitotsu — 'one (item)' (general counter)" },
+          { part: "お願いします", info: "Onegaishimasu — 'please'" }
+        ],
+        accepted: [
+          "ラーメンを一つお願いします",
+          "らーめんをひとつおねがいします",
+          "ラーメンをひとつお願いします",
+          "ラーメンを一つおねがいします",
+          "ラーメンを一つお願いします。"
+        ]
+      },
+      {
+        speaker: "npc",
+        sentence: "お飲み物はいかがですか？",
+        romaji: "Onomimono wa ikaga desu ka?",
+        meaning: { id: "Bagaimana minumannya? / Mau minum apa?", en: "How about a drink?" },
+        usage: "いかがですか is a very polite way of saying 'how about?' It's more formal than どうですか. You'll hear this in restaurants and shops.",
+        breakdown: [
+          { part: "お飲み物", info: "Onomimono — 'drink/beverage' (honorific お prefix)" },
+          { part: "は", info: "Topic marker wa" },
+          { part: "いかが", info: "Ikaga — polite 'how about?' (formal version of どう)" },
+          { part: "ですか", info: "Question ending" }
+        ],
+        accepted: ["お飲み物はいかがですか", "おのみものはいかがですか", "お飲み物はいかがですか？"]
+      },
+      {
+        speaker: "user",
+        sentence: "お水をください。",
+        romaji: "Omizu o kudasai.",
+        meaning: { id: "Tolong air putihnya.", en: "Water please." },
+        usage: "〜をください is a natural, polite way to ask for something. くださいmeans 'please give me'. お水 (omizu) is water with a polite prefix.",
+        breakdown: [
+          { part: "お水", info: "Omizu — 'water' (polite お prefix)" },
+          { part: "を", info: "Object marker particle" },
+          { part: "ください", info: "Kudasai — 'please give me'" }
+        ],
+        accepted: ["お水をください", "おみずをください", "お水をください。", "おみずをください。"]
+      }
+    ]
+  }
+];
+
+/* ============================================================
+   NORMALIZATION
+   ============================================================ */
+const KANJI_KANA_MAP = {
+  "名前":"なまえ","初めまして":"はじめまして","何":"なに","何":"なん",
+  "来":"き","来ました":"きました","日本語":"にほんご","上手":"じょうず",
+  "一人":"ひとり","二人":"ふたり","注文":"ちゅうもん","飲み物":"のみもの",
+  "一つ":"ひとつ","水":"みず","決まり":"きまり","名様":"めいさま",
+  "私":"わたし","名前":"なまえ","来ました":"きました"
+  
+};
+
+function toDisplayHiragana(text) {
+  if (!text) return "";
+
+  let result = text;
+
+  const map = {
+    "初めまして":"はじめまして",
+    "お名前":"おなまえ",
+    "名前":"なまえ",
+    "私":"わたし",
+    "何名様":"なんめいさま",
+    "名様":"めいさま",
+    "何":"なん",
+    "来ました":"きました",
+    "来":"き",
+    "日本語":"にほんご",
+    "上手":"じょうず",
+    "一人":"ひとり",
+    "二人":"ふたり",
+    "ご注文":"ごちゅうもん",
+    "注文":"ちゅうもん",
+    "お決まり":"おきまり",
+    "決まり":"きまり",
+    "一つ":"ひとつ",
+    "お飲み物":"おのみもの",
+    "飲み物":"のみもの",
+    "お水":"おみず",
+    "水":"みず"
+  };
+
+  Object.entries(map)
+    .sort((a, b) => b[0].length - a[0].length)
+    .forEach(([kanji, hira]) => {
+      result = result.replaceAll(kanji, hira);
+    });
+
+  return result;
+}
+function normalize(str) {
+  if (!str) return "";
+  let s = str;
+  // lowercase
+  s = s.toLowerCase();
+  // remove punctuation
+  s = s.replace(/[。、！？!?.,\s・…「」『』【】〔〕（）()[\]{}""'']/g, "");
+  // full-width digits/latin to half-width
+  s = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  // kanji → kana substitutions
+  for (const [k, v] of Object.entries(KANJI_KANA_MAP)) {
+    s = s.replaceAll(k, v);
+  }
+  return s;
+}
+
+function similarity(a, b) {
+  // Levenshtein-based similarity [0..1]
+  const na = normalize(a), nb = normalize(b);
+  if (na === nb) return 1;
+  const m = na.length, n = nb.length;
+  if (m === 0 || n === 0) return 0;
+  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (na[i-1] === nb[j-1]) dp[i][j] = dp[i-1][j-1];
+      else dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  const dist = dp[m][n];
+  return 1 - dist / Math.max(m, n);
+}
+
+function checkAnswer(userText, step) {
+  const normalUser = normalize(userText);
+  // check exact match against accepted list
+  for (const acc of step.accepted) {
+    if (normalize(acc) === normalUser) return { result: "correct", score: 1 };
+  }
+  // check similarity against all accepted
+  let bestSim = 0;
+  for (const acc of step.accepted) {
+    const sim = similarity(userText, acc);
+    if (sim > bestSim) bestSim = sim;
+  }
+  // also compare directly to main sentence
+  const mainSim = similarity(userText, step.sentence);
+  bestSim = Math.max(bestSim, mainSim);
+
+  if (bestSim >= 0.82) return { result: "partial", score: bestSim };
+  return { result: "wrong", score: bestSim };
+}
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+let currentScenario = null;
+let currentStepIndex = 0;
+let recognition = null;
+let isListening = false;
+let finalTranscript = "";
+let interimTranscript = "";
+let speechSupported = false;
+let retryCount = 0;
+
+/* ============================================================
+   SPEECH RECOGNITION
+   ============================================================ */
+function initSpeech() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    speechSupported = false;
+    document.getElementById("noSpeechWarning").classList.remove("hidden");
+    document.getElementById("micBtn").disabled = true;
+    return;
+  }
+  speechSupported = true;
+  recognition = new SpeechRecognition();
+  recognition.lang = "ja-JP";
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
+
+  recognition.onstart = () => {
+    isListening = true;
+    setStatus("listening", "Listening…");
+    document.getElementById("micBtn").classList.add("recording");
+    document.getElementById("userInputZone").classList.add("listening");
+    document.getElementById("micBtn").title = "Stop recording";
+    clearTranscript();
+  };
+
+  recognition.onresult = (e) => {
+    finalTranscript = "";
+    interimTranscript = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        finalTranscript += e.results[i][0].transcript;
+      } else {
+        interimTranscript += e.results[i][0].transcript;
+      }
+    }
+    updateTranscriptDisplay();
+  };
+
+  recognition.onerror = (e) => {
+    stopListening();
+    if (e.error === "no-speech") {
+      setStatus("idle", "No speech detected");
+    } else if (e.error === "not-allowed") {
+      setStatus("idle", "Mic access denied");
+    } else {
+      setStatus("idle", "Error: " + e.error);
+    }
+  };
+
+  recognition.onend = () => {
+    stopListening();
+    if (finalTranscript) {
+      document.getElementById("submitBtn").disabled = false;
+      setStatus("idle", "Done — click ✓ to check");
+    } else {
+      setStatus("idle", "Ready");
+    }
+  };
+}
+
+function startListening() {
+  if (!recognition) return;
+  if (isListening) { recognition.stop(); return; }
+  try { recognition.start(); } catch(e) { console.warn(e); }
+}
+
+function stopListening() {
+  isListening = false;
+  document.getElementById("micBtn").classList.remove("recording");
+  document.getElementById("userInputZone").classList.remove("listening");
+  document.getElementById("micBtn").title = "Start recording";
+}
+
+function clearTranscript() {
+  finalTranscript = "";
+  interimTranscript = "";
+  updateTranscriptDisplay();
+  document.getElementById("submitBtn").disabled = true;
+}
+
+function updateTranscriptDisplay() {
+  const ph = document.getElementById("transcriptPlaceholder");
+  const fin = document.getElementById("transcriptFinal");
+  const intr = document.getElementById("transcriptInterim");
+  if (finalTranscript || interimTranscript) {
+    ph.style.display = "none";
+    fin.textContent = finalTranscript;
+    intr.textContent = interimTranscript;
+  } else {
+    ph.style.display = "";
+    fin.textContent = "";
+    intr.textContent = "";
+  }
+}
+
+function setStatus(type, text) {
+  const pill = document.getElementById("statusPill");
+  const statusText = document.getElementById("statusText");
+  pill.className = "status-pill " + type;
+  statusText.textContent = text;
+}
+
+/* ============================================================
+   SCENARIO / STEP RENDERING
+   ============================================================ */
+function showScenarioSelector() {
+  document.getElementById("scenarioSelector").classList.remove("hidden");
+  document.getElementById("completionScreen").classList.add("hidden");
+}
+
+function renderScenarioList() {
+  const list = document.getElementById("scenarioList");
+  list.innerHTML = "";
+  SCENARIOS.forEach(sc => {
+    const card = document.createElement("div");
+    card.className = "scenario-card";
+    card.innerHTML = `
+      <span class="sc-emoji">${sc.emoji}</span>
+      <div class="sc-title">${sc.titleJP} — ${sc.title}</div>
+      <div class="sc-desc">${sc.context}</div>
+      <span class="sc-steps-count">${sc.steps.length} conversation steps</span>
+    `;
+    card.onclick = () => startScenario(sc);
+    list.appendChild(card);
+  });
+}
+
+function startScenario(sc) {
+  currentScenario = sc;
+  currentStepIndex = 0;
+  retryCount = 0;
+  document.getElementById("scenarioSelector").classList.add("hidden");
+  document.getElementById("headerBadge").textContent = sc.emoji + " " + sc.title;
+  document.getElementById("introTitle").textContent = sc.emoji + " " + sc.titleJP + " — " + sc.title;
+  document.getElementById("introContext").textContent = sc.context;
+  document.getElementById("scenarioIntro").classList.remove("hidden");
+  document.getElementById("progressWrap").classList.remove("hidden");
+  document.getElementById("thread").innerHTML = "";
+  renderStep();
+}
+
+function renderStep() {
+  const sc = currentScenario;
+  const step = sc.steps[currentStepIndex];
+  updateProgress();
+  hideTutor();
+  clearTranscript();
+  document.getElementById("userInputZone").className = "user-input-zone";
+  document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("tryAgainBtn").classList.add("hidden");
+
+  const activeStep = document.getElementById("activeStep");
+  activeStep.classList.remove("hidden");
+
+  if (step.speaker === "npc") {
+    // NPC step: show their sentence, user must repeat it
+    document.getElementById("npcBubble").style.display = "";
+    document.getElementById("npcName").textContent = sc.npcName;
+    document.getElementById("jpSentence").textContent =
+    toDisplayHiragana(step.sentence);
+    document.getElementById("sentenceHint").textContent = "Listen and repeat this sentence aloud";
+    document.getElementById("userInputZone").style.display = "";
+    setStatus("idle", "Ready");
+  } else {
+    // User step: show prompt, user must say the right thing
+    document.getElementById("npcBubble").style.display = "";
+    document.getElementById("npcName").textContent = sc.npcName + " asks you:";
+    // Show the previous NPC line as context, get from prior step
+    const prevStep = sc.steps[currentStepIndex - 1];
+    if (prevStep && prevStep.speaker === "npc") {
+      document.getElementById("jpSentence").textContent =
+         toDisplayHiragana(step.sentence);
+      document.getElementById("sentenceHint").textContent = "This is your response — say it in Japanese!";
+    } edocument.getElementById("jpSentence").textContent =
+        toDisplayHiragana(step.sentence);
+      document.getElementById("sentenceHint").textContent = "Say this sentence in Japanese";
+    }
+    document.getElementById("userInputZone").style.display = "";
+    setStatus("idle", "Ready");
+  }
+
+  // Scroll into view
+  setTimeout(() => activeStep.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+
+
+function updateProgress() {
+  const total = currentScenario.steps.length;
+  const done = currentStepIndex;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = `Step ${done + 1} of ${total}`;
+}
+
+/* ============================================================
+   ANSWER CHECKING + TUTOR
+   ============================================================ */
+function getUserAnswer() {
+  if (speechSupported) return finalTranscript.trim();
+  return document.getElementById("textFallback").value.trim();
+}
+
+function checkCurrentAnswer() {
+  const step = currentScenario.steps[currentStepIndex];
+  const userText = getUserAnswer();
+  if (!userText) return;
+
+  const { result, score } = checkAnswer(userText, step);
+  showTutor(result, step, userText, score);
+
+  document.getElementById("userInputZone").classList.remove("listening");
+  document.getElementById("userInputZone").classList.add(
+    result === "correct" ? "success" : result === "partial" ? "error" : "error"
+  );
+
+  // Add user bubble to thought
+  if (result === "correct") {
+    addUserBubble(userText);
+    document.getElementById("nextBtn").classList.remove("hidden");
+  } else {
+    document.getElementById("tryAgainBtn").classList.remove("hidden");
+    retryCount++;
+  }
+}
+
+function showTutor(result, step, userText, score) {
+  const panel = document.getElementById("tutorPanel");
+  const title = document.getElementById("tutorTitle");
+  const main = document.getElementById("tutorMain");
+  const extras = document.getElementById("tutorExtras");
+
+  panel.classList.remove("hidden", "correct", "partial", "wrong");
+  panel.classList.add(result);
+
+  extras.innerHTML = "";
+
+  if (result === "correct") {
+    title.textContent = "✓ 正解！ Correct!";
+    main.innerHTML = `<strong>Excellent!</strong> You said it perfectly. Here's what this sentence means and when to use it:`;
+    extras.innerHTML = `
+      <div class="meaning-block">
+        <div class="meaning-label">Meaning</div>
+        <div class="meaning-id">🇮🇩 ${step.meaning.id}</div>
+        <div class="meaning-en">🇬🇧 ${step.meaning.en}</div>
+      </div>
+      <div class="usage-block">${step.usage}</div>
+    `;
+  } else if (result === "partial") {
+    title.textContent = "△ Almost there!";
+    const pct = Math.round(score * 100);
+    main.innerHTML = `Good try — you got about <strong>${pct}%</strong> of it right. Let's look at the differences. The correct sentence is: <span class="correct-highlight">${step.sentence}</span>. You said: <span class="error-highlight">${userText}</span>`;
+
+    if (step.breakdown) {
+      let bkHtml = `<p style="font-size:13px;color:var(--text-soft);margin:12px 0 6px;">Here's the sentence broken into parts — check which part you missed:</p><ul class="breakdown-list">`;
+      for (const b of step.breakdown) {
+        bkHtml += `<li><span class="part-jp">${toDisplayHiragana(b.part)}</span><span class="part-info">${b.info}</span></li>`;
+      }
+      bkHtml += "</ul>";
+      extras.innerHTML = bkHtml;
+    }
+  } else {
+    title.textContent = "✗ Let's try again";
+    if (retryCount >= 2) {
+      main.innerHTML = `No worries — Japanese takes time! Let me break this down for you piece by piece.`;
+      if (step.breakdown) {
+        let bkHtml = `<ul class="breakdown-list">`;
+        for (const b of step.breakdown) {
+          bkHtml += `<li><span class="part-jp">${toDisplayHiragana(b.part)}</span><span class="part-info">${b.info}</span></li>`;
+        }
+        bkHtml += "</ul>";
+        extras.innerHTML = `
+          <div class="meaning-block">
+            <div class="meaning-label">The sentence means</div>
+            <div class="meaning-id">🇮🇩 ${step.meaning.id}</div>
+            <div class="meaning-en">🇬🇧 ${step.meaning.en}</div>
+          </div>
+          ${bkHtml}
+          <div class="usage-block">${step.usage}</div>
+        `;
+        document.getElementById("nextBtn").classList.remove("hidden");
+      }
+    } else {
+      main.innerHTML = `The correct sentence is: <span class="correct-highlight">${step.sentence}</span><br><br>Listen carefully and try to match it exactly — pay attention to each sound.`;
+    }
+  }
+
+  setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+}
+
+function hideTutor() {
+  const panel = document.getElementById("tutorPanel");
+  panel.classList.add("hidden");
+  panel.classList.remove("correct", "partial", "wrong");
+  document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("tryAgainBtn").classList.add("hidden");
+}
+
+/* ============================================================
+   THREAD (past messages)
+   ============================================================ */
+function addNPCBubble(step, sc) {
+  const thread = document.getElementById("thread");
+  const div = document.createElement("div");
+  div.className = "msg-past npc";
+  div.innerHTML = `
+    <div class="avatar-row">
+      <div class="avatar npc">🧑</div>
+      <span class="avatar-name">${sc.npcName}</span>
+    </div>
+    <div class="bubble npc">
+      ${toDisplayHiragana(step.sentence)}
+      <div class="romaji">${step.romaji}</div>
+    </div>
+  `;
+  thread.appendChild(div);
+}
+
+function addUserBubble(text) {
+  const thread = document.getElementById("thread");
+  const div = document.createElement("div");
+  div.className = "msg-past user-done";
+  div.innerHTML = `
+    <div class="avatar-row" style="flex-direction:row-reverse;">
+      <div class="avatar user">🧑‍🎓</div>
+      <span class="avatar-name">You</span>
+    </div>
+    <div class="bubble user">${text}</div>
+  `;
+  thread.appendChild(div);
+}
+
+function advanceStep() {
+  const sc = currentScenario;
+  const step = sc.steps[currentStepIndex];
+
+  // Archive current step into thread
+  if (step.speaker === "npc") {
+    addNPCBubble(step, sc);
+  }
+  // (user bubble already added on correct answer)
+
+  currentStepIndex++;
+  retryCount = 0;
+  hideTutor();
+  clearTranscript();
+
+  if (currentStepIndex >= sc.steps.length) {
+    showCompletion();
+    return;
+  }
+
+  // If next step is NPC, add their bubble first
+  const nextStep = sc.steps[currentStepIndex];
+  if (nextStep.speaker === "npc") {
+    // render the npc step
+    renderStep();
+  } else {
+    // user step — NPC prompt is the sentence itself
+    renderStep();
+  }
+}
+
+function skipStep() {
+  const sc = currentScenario;
+  const step = sc.steps[currentStepIndex];
+  if (step.speaker === "npc") addNPCBubble(step, sc);
+  currentStepIndex++;
+  retryCount = 0;
+  hideTutor();
+  clearTranscript();
+  if (currentStepIndex >= sc.steps.length) { showCompletion(); return; }
+  renderStep();
+}
+
+function tryAgain() {
+  hideTutor();
+  clearTranscript();
+  document.getElementById("userInputZone").className = "user-input-zone";
+  if (!speechSupported) document.getElementById("textFallback").value = "";
+  setStatus("idle", "Ready — try again!");
+}
+
+function showCompletion() {
+  document.getElementById("activeStep").classList.add("hidden");
+  document.getElementById("completionScreen").classList.remove("hidden");
+  document.getElementById("progressFill").style.width = "100%";
+  document.getElementById("progressLabel").textContent = "Completed! 🎉";
+  document.getElementById("completionScreen").scrollIntoView({ behavior: "smooth" });
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+document.getElementById("micBtn").onclick = () => {
+  if (!speechSupported) return;
+  startListening();
+};
+
+document.getElementById("submitBtn").onclick = () => {
+  checkCurrentAnswer();
+};
+
+document.getElementById("retryBtn").onclick = () => {
+  clearTranscript();
+  hideTutor();
+  document.getElementById("userInputZone").className = "user-input-zone";
+  if (!speechSupported) document.getElementById("textFallback").value = "";
+  setStatus("idle", "Ready");
+};
+
+document.getElementById("skipBtn").onclick = skipStep;
+
+document.getElementById("nextBtn").onclick = advanceStep;
+
+document.getElementById("tryAgainBtn").onclick = tryAgain;
+
+// text fallback enable submit
+const textFallback = document.getElementById("textFallback");
+if (textFallback) {
+  textFallback.addEventListener("input", () => {
+    document.getElementById("submitBtn").disabled = textFallback.value.trim() === "";
+  });
+  textFallback.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkCurrentAnswer();
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderScenarioList();
+initSpeech();
+</script>
+</body>
+</html>
